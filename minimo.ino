@@ -69,9 +69,8 @@ PubSubClient client(server, 1883, callback, wifiClient);
 
 
 //-------- Global variables --------//
-int publishInterval = 30000; // 30 seconds
+int publishInterval = 5000; // 5 seconds
 long lastpub;
-long lastMsg = 0;
 boolean NTP=false;
 
 //-------- HandleUpdate function receive the data, parse and update the info --------//
@@ -301,7 +300,7 @@ void ISO8601TimeStampDisplay() {// digital clock display of the time
   }
   ISO8601 += second();
 //  ISO8601 += "-06:00";
-  Serial.println(ISO8601);
+  //Serial.println(ISO8601);
 }
 
 time_t prevDisplay = 0; // when the digital clock was displayed
@@ -376,13 +375,13 @@ boolean publishData() {
  *
  */
 
-void MQTTPublishStates(String data1,String text) {
+void MQTTPublishStates(String fieldname,String text) {
 
   StaticJsonBuffer<1024> jsonbuffer;
   JsonObject& root = jsonbuffer.createObject();
   JsonObject& d = root.createNestedObject("d");
   JsonObject& data = d.createNestedObject("data");
-  data[data1] = text;
+  data[fieldname] = text;
   char payload[200];
   root.printTo(payload, sizeof(payload));
 
@@ -413,14 +412,18 @@ while(NTP==false){
   MQTTPublishStates("online","conectado");
   initManagedDevice(); 
     delay(15000);
+  
 }
  
 
 
  
 void loop() {
+  long timenow = millis();
+  if(timenow-lastpub > publishInterval){
   if(publishData());
+  lastpub=millis();
+  }
   
- delay(5000);
 }
  
